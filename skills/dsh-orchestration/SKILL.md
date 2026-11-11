@@ -1,9 +1,19 @@
 ---
 name: dsh-orchestration
-description: Coordinate DeepSeek Harness research and material gathering through dsh-cli, or through native DeepSeek delegation in T3 Code. Use for requested DeepSeek work, parallel research, source collection, screenshots and scroll videos, and managing dsh-cli jobs.
+description: "Coordinate DeepSeek Harness research and material gathering through dsh-cli, or through native DeepSeek delegation in T3 Code. Recognizes task requests such as \"DeepSeek: ...\" and \"Lass DeepSeek ...\". Use for requested DeepSeek work, parallel research, source collection, screenshots and scroll videos, and managing dsh-cli jobs."
 ---
 
 # dsh-orchestration: DeepSeek Harness as a worker pool
+
+## Short requests
+
+Treat a user request in the form `DeepSeek: <task>` or `Lass DeepSeek <task>`
+as an instruction to carry out that task through DeepSeek. Apply the host routing
+below automatically. The user can state the task in ordinary language without
+naming the skill, tools, provider instance ID or model. Use an available default
+DeepSeek model when the user leaves the model choice open. Preserve explicit
+model choices and the user's requested scope. A question about DeepSeek itself
+does not by itself request delegation.
 
 ## Host routing
 

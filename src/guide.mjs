@@ -8,6 +8,16 @@ orchestrator: write the tasks, start them, wait, read the results, follow up.
 dsh workers are fast and cheap: ideal for research, gathering material,
 screenshots, scroll videos, stock footage and summaries of many sources.
 
+## Short requests
+
+Treat a user request in the form \`DeepSeek: <task>\` or \`Lass DeepSeek <task>\`
+as an instruction to carry out that task through DeepSeek. Apply the host routing
+below automatically. The user can state the task in ordinary language without
+naming the skill, tools, provider instance ID or model. Use an available default
+DeepSeek model when the user leaves the model choice open. Preserve explicit
+model choices and the user's requested scope. A question about DeepSeek itself
+does not by itself request delegation.
+
 ## Host routing
 
 In T3 Code, use its native delegation for DeepSeek research. Call
