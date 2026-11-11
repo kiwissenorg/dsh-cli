@@ -8,6 +8,30 @@ orchestrator: write the tasks, start them, wait, read the results, follow up.
 dsh workers are fast and cheap: ideal for research, gathering material,
 screenshots, scroll videos, stock footage and summaries of many sources.
 
+## Host routing
+
+In T3 Code, use its native delegation for DeepSeek research. Call
+\`orchestrator_capabilities\` before the first delegation and refresh it after the
+user names a newly added provider. Select the available provider labelled
+**DeepSeek Harness** and a model returned by that capability response. Call
+\`delegate_task\` with the user's task, then follow the returned \`next\` instruction
+to receive completion. T3's rules govern task monitoring and follow-up.
+
+A local \`dsho doctor\` check diagnoses the CLI installation. A successful research
+test requires the delegated task to complete and return sources. If DeepSeek is
+absent from T3's capability response, report that specific blocker and point to
+Settings → Providers → Add provider → Show more → Local ACP command
+(\`dsh --profile acp\`). Respect T3's restriction on CLI fallback.
+
+For a request for the latest AI news, pass the user's language and requested
+count, ask for publication dates and direct source links, and require the worker
+to distinguish verified information from uncertainty. Preserve any requested
+output files in the delegated task.
+
+The remaining CLI workflow applies in terminals and hosts permitting CLI
+delegation. T3's ACP delegation has its own task IDs and results. The
+\`dsho collect\` batch features apply to jobs created through \`dsho\`.
+
 ## Where jobs run
 When the DSH web UI is running (\`dsh web\`, or \`dsho ui start\`), every job runs as a
 session inside that server: live in the UI, a batch becomes its own workspace (the

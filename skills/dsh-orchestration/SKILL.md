@@ -1,9 +1,33 @@
 ---
 name: dsh-orchestration
-description: Delegates light, parallelizable work to a local DeepSeek Harness (dsh) through the dsh-cli command `dsho`. Use it when several research questions should run in parallel, when material has to be gathered (screenshots of blogs and news articles, scroll videos of websites, stock footage, stock photos), when a task can be done fast and cheap by DeepSeek, when a dsh workspace or session should be started, continued, watched or cancelled, or when a single screenshot or scroll video of a URL is needed. Trigger phrases "DSH", "dsh", "DeepSeek Harness", "DeepSeek", "dsho", "dsh-cli", "via DeepSeek", "research in parallel", "10 research tasks", "batch", "gather material", "screenshots of articles", "scroll video", "screen recording of a website", "stock footage", "b-roll", "/dsh-orchestration".
+description: Coordinate DeepSeek Harness research and material gathering through dsh-cli, or through native DeepSeek delegation in T3 Code. Use for requested DeepSeek work, parallel research, source collection, screenshots and scroll videos, and managing dsh-cli jobs.
 ---
 
 # dsh-orchestration: DeepSeek Harness as a worker pool
+
+## Host routing
+
+In T3 Code, use its native delegation for DeepSeek research. Call
+`orchestrator_capabilities` before the first delegation and refresh it after the
+user names a newly added provider. Select the available provider labelled
+**DeepSeek Harness** and a model returned by that capability response. Call
+`delegate_task` with the user's task, then follow the returned `next` instruction
+to receive completion. T3's rules govern task monitoring and follow-up.
+
+A local `dsho doctor` check diagnoses the CLI installation. A successful research
+test requires the delegated task to complete and return sources. If DeepSeek is
+absent from T3's capability response, report that specific blocker and point to
+Settings → Providers → Add provider → Show more → Local ACP command
+(`dsh --profile acp`). Respect T3's restriction on CLI fallback.
+
+For a request for the latest AI news, pass the user's language and requested
+count, ask for publication dates and direct source links, and require the worker
+to distinguish verified information from uncertainty. Preserve any requested
+output files in the delegated task.
+
+The remaining CLI workflow applies in terminals and hosts permitting CLI
+delegation. T3's ACP delegation has its own task IDs and results. The
+`dsho collect` batch features apply to jobs created through `dsho`.
 
 `dsho` (also installed as `dsh-cli`) starts unattended dsh workers, each in a workspace
 folder, alone or as parallel batches. You are the orchestrator: cut the work into tasks,
@@ -32,7 +56,7 @@ Full reference at any time: `dsho guide` and `dsho <command> --help`.
 | Many similar subtasks (work through a list) | Tasks that need answers from the user |
 | Long reading tasks, summaries of many sources | Anything with secrets, logins, payments |
 
-## Workflow (always)
+## CLI workflow
 
 1. **Check the environment** once per session: `dsho doctor`. It also shows whether the
    DSH web UI is reachable (`web-ui`). First time on a machine: `dsho setup`.
