@@ -98,6 +98,30 @@ After `dsho setup` your agents know the skill. Ask in plain language:
 
 The skill tells the agent to start a batch, wait in steps that fit its shell timeout, read `INDEX.md`, spot-check the results and follow up where needed. `dsho guide` prints the same manual for any agent without skill support.
 
+### Collection diagnostics
+
+`dsho collect` reports missing required source or manifest files, malformed JSON,
+unexpected data structures, and invalid entries per job. Valid entries from other
+jobs remain available. Warnings appear in the terminal, in `INDEX.md`, and in the
+`warnings` array of the `--json` response. Job status continues to describe execution;
+callers should also inspect collection warnings when checking deliverables.
+
+Merged sources keep the original `job` field and include a `jobs` array listing
+every contributing job. Each collection replaces `sources.json` and
+`manifest.json`, including with empty arrays when no valid entries remain.
+
+### T3 Code
+
+T3 Code controls locally installed agents. Install this CLI on the machine running
+the agent, then make sure the agent can execute `dsho doctor` in its terminal.
+Use `dsho skill install` for the supported agent's skill location. The existing
+installer supports Codex, Claude Code, Pi and the shared Agent Skills directory.
+
+In a T3 Code chat, ask the selected agent to run `dsho guide` and follow that guide
+for the requested research task. Inspect collection warnings alongside job status.
+This integration uses the agent's shell access and requires a configured DeepSeek
+Harness. It has not yet been verified in a live T3 Code session.
+
 ## Commands
 
 | Command | What it does |

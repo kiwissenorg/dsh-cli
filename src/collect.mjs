@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from '
 import { join, relative } from 'node:path'
 import { jobDir } from './paths.mjs'
 import { listJobs, readBatch, summarizeJobs } from './store.mjs'
-import { DshoError, excerpt, fmtDuration, readJson } from './util.mjs'
+import { DshoError, excerpt, fmtDuration, readJson, writeJsonAtomic } from './util.mjs'
 
 const SKIP_DIRS = new Set(['node_modules', '.git', '__pycache__'])
 
@@ -48,6 +48,33 @@ export function jobResult(id) {
 export const jobDuration = (job) =>
   job.startedAt ? (job.endedAt ? Date.parse(job.endedAt) : Date.now()) - Date.parse(job.startedAt) : null
 
+function readOutputArray(dir, filename, job, required, warnings) {
+  const warn = (message) => warnings.push({ job: job.id, file: filename, message })
+  let value
+  try {
+    value = readJson(join(dir, filename))
+  } catch (err) {
+    warn(`Cannot read output: ${excerpt(err.message, 200)}`)
+    return []
+  }
+  if (value === undefined) {
+    if (required) warn('Required output is missing')
+    return []
+  }
+  if (!Array.isArray(value)) {
+    warn('Expected a JSON array')
+    return []
+  }
+  return value.filter((item, index) => {
+    const key = filename === 'sources.json' ? 'url' : 'file'
+    if (!item || typeof item[key] !== 'string' || !item[key].trim()) {
+      warn(`Entry ${index + 1} needs a non-empty ${key} string`)
+      return false
+    }
+    return true
+  })
+}
+
 export function collectBatch(batchId, { output } = {}) {
   const batch = readBatch(batchId)
   if (!batch) throw new DshoError(`Batch ${batchId} not found`, 3)
@@ -56,22 +83,29 @@ export function collectBatch(batchId, { output } = {}) {
   const manifest = []
   const sources = new Map()
   const sections = []
+  const warnings = []
 
   for (const job of jobs) {
     const dir = job.outDir ?? job.cwd
     const files = listFiles(dir)
     const result = jobResult(job.id)
-    const jobManifest = readJson(join(dir, 'manifest.json'), null)
-    if (Array.isArray(jobManifest)) {
-      for (const item of jobManifest) {
-        const file = item.file ? relative(batch.root, join(dir, item.file)) : null
-        manifest.push({ ...item, file, job: job.id })
+    const warningStart = warnings.length
+    const template = job.template ?? batch.template
+    const jobManifest = readOutputArray(dir, 'manifest.json', job, template === 'materials', warnings)
+    for (const item of jobManifest) {
+      const file = relative(batch.root, join(dir, item.file))
+      manifest.push({ ...item, file, job: job.id })
+    }
+    const jobSources = readOutputArray(dir, 'sources.json', job, template === 'research', warnings)
+    for (const source of jobSources) {
+      const existing = sources.get(source.url)
+      if (existing) {
+        if (!existing.jobs.includes(job.id)) existing.jobs.push(job.id)
+      } else {
+        sources.set(source.url, { ...source, job: job.id, jobs: [job.id] })
       }
     }
-    const jobSources = readJson(join(dir, 'sources.json'), null)
-    if (Array.isArray(jobSources)) {
-      for (const s of jobSources) if (s?.url && !sources.has(s.url)) sources.set(s.url, { ...s, job: job.id })
-    }
+    const jobWarnings = warnings.slice(warningStart)
     const nn = String(job.index ?? 0).padStart(2, '0')
     sections.push(
       [
@@ -81,6 +115,7 @@ export function collectBatch(batchId, { output } = {}) {
         `- Folder: \`${relative(batch.root, dir) || '.'}\``,
         `- Task: ${excerpt(job.prompt, 300)}`,
         job.error ? `- Error: ${excerpt(job.error, 300)}` : null,
+        ...jobWarnings.map((warning) => `- Warning (${warning.file}): ${warning.message}`),
         files.length ? `- Files: ${files.slice(0, 40).map((f) => `\`${f.path}\``).join(', ')}${files.length > 40 ? ` and ${files.length - 40} more` : ''}` : '- Files: none',
         '',
         result ? result.trim() : '_No final answer._',
@@ -98,21 +133,17 @@ export function collectBatch(batchId, { output } = {}) {
     `Batch \`${batch.id}\` · status ${summary.status} (${counts}) · ${jobs.length} jobs · created ${new Date(batch.createdAt).toISOString().replace('T', ' ').slice(0, 16)} UTC`,
     manifest.length ? `\nMaterial: ${manifest.length} files, see \`manifest.json\`.` : '',
     sources.size ? `Sources: ${sources.size} unique URLs, see \`sources.json\`.` : '',
+    warnings.length ? `Collection warnings: ${warnings.length}. See the affected jobs below.` : '',
     '',
     ...sections,
   ].join('\n')
 
   const indexPath = output ?? join(batch.root, 'INDEX.md')
+  const manifestPath = join(batch.root, 'manifest.json')
+  const sourcesPath = join(batch.root, 'sources.json')
+  // Replace empty aggregates too, so repeated collection cannot retain old entries.
+  writeJsonAtomic(manifestPath, manifest)
+  writeJsonAtomic(sourcesPath, [...sources.values()])
   writeFileSync(indexPath, index)
-  let manifestPath = null
-  let sourcesPath = null
-  if (manifest.length) {
-    manifestPath = join(batch.root, 'manifest.json')
-    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n')
-  }
-  if (sources.size) {
-    sourcesPath = join(batch.root, 'sources.json')
-    writeFileSync(sourcesPath, JSON.stringify([...sources.values()], null, 2) + '\n')
-  }
-  return { batch: batch.id, status: summary.status, counts: summary.counts, index: indexPath, manifest: manifestPath, sources: sourcesPath, materialFiles: manifest.length, sourceCount: sources.size }
+  return { batch: batch.id, status: summary.status, counts: summary.counts, index: indexPath, manifest: manifest.length ? manifestPath : null, sources: sources.size ? sourcesPath : null, materialFiles: manifest.length, sourceCount: sources.size, warnings }
 }

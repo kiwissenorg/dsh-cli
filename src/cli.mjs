@@ -760,6 +760,7 @@ async function cmdCollect(argv) {
       `INDEX written:  ${res.index}`,
       res.manifest ? `Manifest:       ${res.manifest} (${res.materialFiles} files)` : null,
       res.sources ? `Sources:        ${res.sources} (${res.sourceCount} URLs)` : null,
+      ...res.warnings.map((warning) => `Warning: ${warning.job} / ${warning.file}: ${warning.message}`),
       `Status: ${res.status} ${JSON.stringify(res.counts)}`,
     ].filter(Boolean).join('\n'),
   )
