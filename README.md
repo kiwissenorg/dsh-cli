@@ -112,15 +112,20 @@ every contributing job. Each collection replaces `sources.json` and
 
 ### T3 Code
 
-T3 Code controls locally installed agents. Install this CLI on the machine running
-the agent, then make sure the agent can execute `dsho doctor` in its terminal.
-Use `dsho skill install` for the supported agent's skill location. The existing
-installer supports Codex, Claude Code, Pi and the shared Agent Skills directory.
+T3 Code requires cross-provider delegation through its own `delegate_task` tools.
+A T3 agent may reject `dsho run` even when the CLI works in a terminal.
 
-In a T3 Code chat, ask the selected agent to run `dsho guide` and follow that guide
-for the requested research task. Inspect collection warnings alongside job status.
-This integration uses the agent's shell access and requires a configured DeepSeek
-Harness. It has not yet been verified in a live T3 Code session.
+Connect DeepSeek Harness as a native local ACP provider through
+**Settings → Providers → Add provider → Show more → Local ACP command**.
+Use the installed `dsh` executable with the arguments `--profile` and `acp`,
+or a launcher that supplies those arguments and the existing `DSH_HOME`.
+T3 can then discover DeepSeek's models and delegate to that provider.
+
+This path uses DeepSeek Harness's ACP interface. The CLI's research batches,
+collection diagnostics and merged source attribution remain features of `dsho`
+when invoked from a terminal or another host that supports CLI delegation.
+
+See [T3's local ACP setup documentation](https://github.com/pingdotgg/t3code/blob/main/docs/user/providers-acp.md#add-a-local-command).
 
 ### Grok Bot desktop
 
