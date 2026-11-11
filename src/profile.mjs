@@ -73,7 +73,9 @@ export function renderPatch({ rows, dump, skillsDir, sourceProfile }) {
 # A curated skill folder instead of the full pool keeps the worker prompt small;
 # the .dsho-workspace marker lets workers in batch subfolders load the workspace AGENTS.md.
 `
-  const base = []
+  // Current headless templates disable the local store. Reuse the configured
+  // harness home's credentials for unattended jobs, without copying secrets.
+  const base = [{ id: 'credentials', disabled: false }]
   if (skillsDir) base.push({ id: 'skill-filesystem', config: { includeDefaultRoots: false, customSkillDirs: [skillsDir], watch: false } })
   base.push({ id: 'agent-instructions', config: { maxBytes: 65536, projectRootMarkers: ['.git', '.dsho-workspace'] } })
   if (rows.length) base.push({ insert: rows })

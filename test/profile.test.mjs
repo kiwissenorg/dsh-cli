@@ -54,6 +54,7 @@ test('all, none and explicit lists', () => {
 test('renderPatch emits skill, instruction and insert rows that parse back', () => {
   const { rows, dump } = extractRows(WEB_PATCH, mcpFilter('research'))
   const text = renderPatch({ rows, dump, skillsDir: '/x/skills-orchestra', sourceProfile: 'web' })
+  assert.match(text, /id: credentials\n  disabled: false/)
   assert.match(text, /includeDefaultRoots: false/)
   assert.match(text, /- \/x\/skills-orchestra/)
   assert.match(text, /\.dsho-workspace/)

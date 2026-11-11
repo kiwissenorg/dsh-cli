@@ -122,6 +122,21 @@ for the requested research task. Inspect collection warnings alongside job statu
 This integration uses the agent's shell access and requires a configured DeepSeek
 Harness. It has not yet been verified in a live T3 Code session.
 
+### Grok Bot desktop
+
+In Grok Bot, use local computer execution to invoke the installed `dsho` command.
+The CLI and DeepSeek Harness must run on the same Mac. The bot's own remote
+computer has a separate filesystem and cannot use the Mac's localhost address.
+
+For a first check, ask Grok Bot to execute `dsho doctor --json` and `dsho guide`
+on your Mac. Then request a small job and inspect its final status and result.
+Use the absolute executable path if the app's shell cannot find `dsho`.
+
+For an existing Harness installation with a custom data folder, set `DSH_HOME`
+in the launcher environment for both setup and every CLI command. The orchestra
+profile enables the local credential store so current headless templates can
+resolve keys already saved in that Harness home.
+
 ## Commands
 
 | Command | What it does |
